@@ -1,0 +1,6 @@
+grant { 
+permission java.security.AllPermission;
+permission java.net.socketPermission "localhost:7000", "connect,accept";
+permission java.net.socketPermission "10.0.2.15:7000", "connect,accept";
+permission java.net.socketPermission "192.168.56.1:7000", "connect,accept";
+}; 

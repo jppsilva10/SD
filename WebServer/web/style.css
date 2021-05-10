@@ -1,18 +1,9 @@
-input#chat {
-  width: 456px;
-  border: 1px solid #AACAAC;
-}
-
-input#room {
-  width: 456px;
-  border: 1px solid #AACAAC;
-}
 
 #container {
   width: 450px;
 }
 
-#history {
+#listas {
   height: 180px;
   border: 1px solid #AACAAC;
   padding: 5px;
@@ -22,7 +13,7 @@ input#room {
   width: 100%;
 }
 
-#history p {
+#listas p {
   margin: 0;
   padding: 0;
 }

@@ -41,8 +41,18 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
           <result name="fail">/index.jsp</result>
       </action>
 
+      <action name="LE" class="AdminConsole.action.ListElectionsAction" method="execute">
+          <result name="success">/ListElections.jsp</result>
+          <result name="fail">/index.jsp</result>
+      </action>
+
       <action name="UserDetails" class="AdminConsole.action.ListUsersAction" method="setUserDetails">
           <result name="success">/UserDetails.jsp</result>
+          <result name="fail">/index.jsp</result>
+      </action>
+
+      <action name="ElectionDetails" class="AdminConsole.action.ListElectionsAction" method="setElectionDetails">
+          <result name="success">/ElectionDetails.jsp</result>
           <result name="fail">/index.jsp</result>
       </action>
 

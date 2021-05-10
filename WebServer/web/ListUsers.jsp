@@ -11,13 +11,21 @@
 <body>
 <p> Pessoas: </p><br>
 
-<c:forEach items="${AdminConsoleBean.usersList}" var="value">
-    <s:url action="UserDetails" var="link">
-        <s:param name="username"> <c:out value="${value}" /> </s:param>
-    </s:url>
-    <p><a href="${link}">
-        <c:out value="${value}" />
-    </a><br></p>
-</c:forEach>
+<c:choose>
+    <c:when test="${AdminConsoleBean.test}">
+
+        <c:forEach items="${AdminConsoleBean.usersList}" var="value">
+            <s:url action="UserDetails" var="link">
+                <s:param name="username"> <c:out value="${value}" /> </s:param>
+            </s:url>
+            <p><a href="${link}">
+                <c:out value="${value}" />
+            </a><br></p>
+        </c:forEach>
+    </c:when>
+    <c:otherwise>
+        <p> Ligacao perdida! </p><br>
+    </c:otherwise>
+</c:choose>
 </body>
 </html>

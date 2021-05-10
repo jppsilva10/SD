@@ -24,26 +24,23 @@ public class AdminConsoleBean {
     Calendar Timer;
     AdminConsole console;
     private String username;
+    private String titulo;
+    private String userDetails;
+    private String electionDetails;
+
+    public String getTitulo(){
+        return titulo;
+    }
 
     public String setUserDetails(String username) {
-        Timer = Calendar.getInstance();
-        Timer.add(Calendar.SECOND, 30);
-        while(true) {
-            try {
-                this.userDetails = console.rs.consultarPessoa(username);
-                break;
-            } catch (NotFoundException.PessoaNF pessoaNF) {
-                return "fail";
-            } catch (RemoteException e) {
-                console.rebind();
-                if (Timer.after(Calendar.getInstance())) continue;
-                return "fail";
-            }
-        }
+        this.username = username;
         return "success";
     }
 
-    private String userDetails;
+    public String setElectionDetails(String title) {
+        titulo = title;
+        return "success";
+    }
 
     public void setUsername(String username) {
         this.username = username;
@@ -71,6 +68,21 @@ public class AdminConsoleBean {
         return dayList;
     }
 
+    public boolean getTest(){
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                console.rs.getVoto("", "");
+                break;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return false;
+            }
+        }
+        return true;
+    }
 
 
     public void config() // ler o ficheiro de configuração
@@ -156,7 +168,65 @@ public class AdminConsoleBean {
         return list;
     }
     public String getUserDetails(){
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                userDetails = console.rs.consultarPessoa(username);
+                break;
+            } catch (NotFoundException.PessoaNF pessoaNF) {
+                return null;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return null;
+            }
+        }
         return userDetails;
+    }
+
+    public ArrayList<String> getElectionsList(){
+
+        ArrayList<String> list = new ArrayList<String>();
+
+        Properties map = null;
+
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                map = GetHashMap(console.rs.listarEleicoes());
+                break;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return list;
+            }
+        }
+
+        for (int i = 1; i < Integer.parseInt(map.getProperty("size")); i++) {
+            list.add(map.getProperty("" + i));
+        }
+        return list;
+    }
+    public String[] getElectionDetails(){
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                this.electionDetails = console.rs.consultarEleicao(titulo);
+                break;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return null;
+            } catch (NotFoundException.EleicaoNF e){
+                return null;
+            }
+        }
+
+        String[] details = electionDetails.split("\n");
+        return details;
     }
 
     public ArrayList<String> getDayslist(){

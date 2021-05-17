@@ -20,7 +20,7 @@ public class Voto implements Serializable{
         }
     }
     public String toString(){
-        String str = "Eleitor: " + eleitor.GetUsername() + "\n";
+        String str = "Eleitor: " + eleitor.GetUsername()  + "(" + eleitor.GetTipo() + ")" + "\n";
         str += "Mesa: " + mesa.GetId() + "\n";
         str += "Instande: " + instante.get(Calendar.DAY_OF_MONTH) + "/" + (instante.get(Calendar.MONTH)+1) + "/" + instante.get(Calendar.YEAR) + "\n";
         return str;

@@ -2,7 +2,14 @@ package com.company;
 
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Date;
+
+import com.github.scribejava.apis.FacebookApi;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.OAuth2AccessToken;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.oauth.OAuth20Service;
 
 public class Pessoa implements Serializable {
     protected String tipo;
@@ -14,6 +21,8 @@ public class Pessoa implements Serializable {
     protected String morada;
     protected String numero_CC;
     protected Calendar validade_CC;
+    protected OAuth2AccessToken accessToken;
+
     public Pessoa(String tipo, String nome, String username, String password, String departamento, String contacto, String morada,String numero_CC, Calendar validade_CC) {
         this.tipo = tipo;
         this.nome = nome;
@@ -24,6 +33,7 @@ public class Pessoa implements Serializable {
         this.morada = morada;
         this.numero_CC = numero_CC;
         this.validade_CC = validade_CC;
+        this.accessToken = null;
     }
     public Boolean equals(Pessoa pessoa){
         if(this.numero_CC.equals(pessoa.numero_CC)) return true;
@@ -69,6 +79,7 @@ public class Pessoa implements Serializable {
     public Calendar GetValidade_CC(){
         return validade_CC;
     }
+    public OAuth2AccessToken GetAccessToken(){ return accessToken; }
     //-----------------------------------------------------------------------
     public void SetNome(String nome){
         this.nome = nome;
@@ -94,4 +105,5 @@ public class Pessoa implements Serializable {
     public void SetValidade_CC(Calendar validade_CC){
         this.validade_CC = validade_CC;
     }
+    public void SetAccessToken(OAuth2AccessToken accessToken){ this.accessToken = accessToken; }
 }

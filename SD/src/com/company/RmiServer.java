@@ -1,5 +1,7 @@
 package com.company;
 
+import com.github.scribejava.core.model.OAuth2AccessToken;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Calendar;
@@ -54,7 +56,9 @@ public interface RmiServer extends Remote{
 
     String ListarEleicoesPorMesa(String mesa_id) throws RemoteException, NotFoundException.MesaNF;
 
-   boolean login(String numero_CC, String password) throws RemoteException, NotFoundException.PessoaNF;
+   boolean login(String username, String password) throws RemoteException, NotFoundException.PessoaNF;
+
+    String facebookLogin() throws RemoteException;
 
     Boolean getVoto(String numero_CC, String eleicao) throws RemoteException;
 
@@ -75,6 +79,12 @@ public interface RmiServer extends Remote{
     void removePessoa(String eleicao, String lista, String pessoa) throws RemoteException, NotFoundException.EleicaoNF, NotFoundException.ListaNF, TimeBoundsException.EleicaoAlreadyStarted, NotFoundException.PessoaNF;
 
     void addVoto(String numero_CC, String eleicao, String lista, String mesa_id) throws RemoteException, NotFoundException.PessoaNF, NotFoundException.EleicaoNF, NotFoundException.MesaNF, NotFoundException.ListaNF, DataConflictException, TimeBoundsException.EleicaoAlreadyTerminated, DataConflictException.InvalidType;
+
+    void setAccessToken(String username, OAuth2AccessToken accessToken) throws RemoteException, NotFoundException.PessoaNF;
+
+    OAuth2AccessToken getAccessToken(String username) throws RemoteException, NotFoundException.PessoaNF;
+
+    String ListarUsers() throws RemoteException;
 
     void SaveDados() throws RemoteException;
 }

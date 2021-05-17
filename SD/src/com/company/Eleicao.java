@@ -41,8 +41,8 @@ public class Eleicao  extends Thread implements Serializable {
             }
         }
         if(!terminada) { // para não repetir notificações
-            System.out.println("\nEleição " + titulo + " terminada\n");
-            notificacoes.Put("\nEleição " + titulo + " terminada\n"); // acrescenta uma nova notificação;
+            System.out.println("\nEleicao " + titulo + " terminada\n");
+            notificacoes.Put("\nEleicao " + titulo + " terminada\n||"+"Eleicao|"+titulo+";resultado|"+GetResultado()); // acrescenta uma nova notificação;
             terminada = true;
         }
     }
@@ -98,7 +98,14 @@ public class Eleicao  extends Thread implements Serializable {
             str += "" + votos.get(i) + "\n";
         }
 
+        str += GetResultado();
+        return str;
+    }
+
+    public String GetResultado(){
+        String str = "";
         if(Calendar.getInstance().after(fim)){
+            str += "Resultado:" + "\n";
             int total = 0;
             Lista l = listas.get(0);
             for(int i=1; i<listas.size(); i++){
@@ -107,12 +114,15 @@ public class Eleicao  extends Thread implements Serializable {
                     l = listas.get(i);
                 }
             }
-            for(int i=0; i<listas.size(); i++){
-                   str += "" + listas.get(i)+ ": " + listas.get(i) + " / " + (listas.get(i).GetVotos()/total) + "%\n";
+            if(total!=0) {
+                for (int i = 0; i < listas.size(); i++) {
+                    str += "" + listas.get(i) + ": " + listas.get(i) + " / " + (listas.get(i).GetVotos() / total) + "%\n";
+                }
             }
-            str += "Vencedor: " + l.GetNome();
+            if(total!=0) {
+                str += "Vencedor: " + l.GetNome();
+            }
         }
-
         return str;
     }
 

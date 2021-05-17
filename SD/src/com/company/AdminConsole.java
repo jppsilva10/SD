@@ -1,5 +1,13 @@
 package com.company;
 
+import com.github.scribejava.apis.FacebookApi;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.OAuth2AccessToken;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.oauth.OAuth20Service;
+
 import java.io.*;
 import java.net.*;
 import java.rmi.Naming;
@@ -10,12 +18,18 @@ import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class AdminConsole extends UnicastRemoteObject implements RmiClient, Serializable {
     String RmiAddress;
     int RmiPort;
     public RmiServer rs;
     Calendar Timer;
+    WSInterface ws;
+    UserInterface user;
+
+    private static final String NETWORK_NAME = "Facebook";
+    private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/v3.2/me";
 
     public AdminConsole() throws RemoteException{
         super();
@@ -35,6 +49,29 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
         synchronized (this.rs) {
             this.rs = rs;
         }
+    }
+
+    @Override
+    public void update(String str) throws RemoteException {
+        if(this.ws!=null) this.ws.update(str);
+    }
+
+    public void setWs(WSInterface ws) throws RemoteException {
+        this.ws = ws;
+    }
+
+    public String getUsername() throws RemoteException {
+        if(user!=null) return user.getPassword();
+        return null;
+    }
+
+    public String getPassword() throws RemoteException {
+        if(user!=null) return user.getPassword();
+        return null;
+    }
+
+    public void setUser(UserInterface user) throws RemoteException {
+        this.user = user;
     }
 
     public void config() // ler o ficheiro de configuração
@@ -78,6 +115,66 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
         }
     }
 
+    public void AccessToken() throws IOException, ExecutionException, InterruptedException {
+        // Step 1: Create Facebook Account
+        // Step 2: Create application (https://developers.facebook.com/ Log In -> Get Started)
+        // Step 3: Replace below with your app key and secret
+        final String appKey = "463509174943899";
+        final String appSecret = "22b58424ddda756bdd4faa0baed6dee3";
+        final String secretState = "secret" + new Random().nextInt(999_999);
+        final OAuth20Service service = new ServiceBuilder(appKey)
+                .apiSecret(appSecret)
+                .callback("https://eden.dei.uc.pt/~fmduarte/echo.php")
+                .build(FacebookApi.instance());
+
+        final Scanner in = new Scanner(System.in, "UTF-8");
+
+        System.out.println("=== " + NETWORK_NAME + "'s OAuth Workflow ===");
+        System.out.println();
+
+        // Obtain the Authorization URL
+        System.out.println("Fetching the Authorization URL...");
+        final String authorizationUrl = service.getAuthorizationUrl(secretState);
+        System.out.println("Got the Authorization URL!");
+        System.out.println("Now go and authorize ScribeJava here:");
+        System.out.println(authorizationUrl);
+        System.out.println("And paste the authorization code here");
+        System.out.print(">>");
+        final String code = in.nextLine();
+        System.out.println();
+
+        System.out.println("And paste the state from server here. We have set 'secretState'='" + secretState + "'.");
+        System.out.print(">>");
+        final String value = in.nextLine();
+        if (secretState.equals(value)) {
+            System.out.println("State value does match!");
+        } else {
+            System.out.println("Ooops, state value does not match!");
+            System.out.println("Expected = " + secretState);
+            System.out.println("Got      = " + value);
+            System.out.println();
+        }
+
+        System.out.println("Trading the Authorization Code for an Access Token...");
+        final OAuth2AccessToken accessToken = service.getAccessToken(code);
+        System.out.println("Got the Access Token!");
+        System.out.println("(The raw response looks like this: " + accessToken.getRawResponse() + "')");
+        System.out.println();
+
+        // Now let's go and ask for a protected resource!
+        System.out.println("Now we're going to access a protected resource...");
+        final OAuthRequest request = new OAuthRequest(Verb.GET, PROTECTED_RESOURCE_URL);
+        service.signRequest(accessToken, request);
+        try (Response response = service.execute(request)) {
+            System.out.println("Got it! Lets see what we found...");
+            System.out.println();
+            System.out.println(response.getCode());
+            System.out.println(response.getBody());
+        }
+        System.out.println();
+        System.out.println("Thats it man! Go and build something awesome with ScribeJava! :)");
+    }
+
     public void interfaceConsola()
     {
         Scanner keyboardScanner = new Scanner(System.in);
@@ -92,6 +189,7 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
             System.out.println("\t5 - Listar Pessoas");
             System.out.println("\t6 - Litar Eleicoes");
             System.out.println("\t7 - Litar Mesas");
+            System.out.println("\t8 - Conectar aoa facebook");
             switch (keyboardScanner.nextLine()) {
                 case "1": // ----------------------------- criar pessoa ------------------------------------
                     erro = 0;
@@ -1721,6 +1819,17 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
                     if(erro==-1){
                         System.out.println("Conexao perdida!");
                         break;
+                    }
+                    break;
+                case "8":
+                    try {
+                        AccessToken();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                     break;
                 default:

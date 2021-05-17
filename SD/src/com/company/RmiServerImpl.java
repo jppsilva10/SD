@@ -1,5 +1,7 @@
 package com.company;
 
+import com.github.scribejava.core.model.OAuth2AccessToken;
+
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -40,6 +42,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
 
     public void reconect() // reconectar com os clientes
     {
+        boolean erro = false;
         synchronized (clientes) {
             for (int i = 0; i < clientes.size(); i++) {
                 try {
@@ -48,8 +51,13 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                     clientes.remove(clientes.get(i));
                     i--;
                     System.out.println("cliente removido");
+                    erro = true;
                 }
             }
+        }
+        try {
+            if(erro) updateAll(ListarUsers());
+        }catch (RemoteException e){
         }
 
         synchronized (mesas) {
@@ -75,7 +83,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
 
     public void subscribe(RmiClient cliente) throws RemoteException
     {
-        synchronized (clientes){
+        synchronized (clientes) {
             clientes.add(cliente);
         }
 
@@ -122,7 +130,13 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
             synchronized (clientes) {
                 for (int i = 0; i < clientes.size(); i++) { // notifica todos as mesas
                     try {
-                        clientes.get(i).print(str);
+                        if(str.contains("terminada")){
+                            clientes.get(i).print(str.split("\\|\\|")[0]);
+                            updateAll(str.split("\\|\\|")[1]);
+                        }
+                        else{
+                            clientes.get(i).print(str);
+                        }
                     } catch (RemoteException e) { // Se a ligação com a mesa deixar de funcionar remove-se o ojeto remoto da lista
                         clientes.remove(clientes.get(i));
                         System.out.println("client removido");
@@ -294,9 +308,14 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                     throw new TimeBoundsException.EleicaoAlreadyStarted();
                 }
                 e.SetTitulo(titulo);
+                if(!titulo_anterior.equals(titulo)) updateAll("Eleicao|"+titulo_anterior+";titulo|"+titulo);
+                if(!e.GetDescricao().equals(descricao)) updateAll("Eleicao|"+titulo+";descricao|"+descricao);
                 e.SetDescricao(descricao);
+                updateAll("Eleicao|"+titulo+";inicio|" + inicio.get(Calendar.DAY_OF_MONTH) + "/" + (inicio.get(Calendar.MONTH)+1) + "/" + inicio.get(Calendar.YEAR) + " " + inicio.get(Calendar.HOUR_OF_DAY) + ":" + inicio.get(Calendar.MINUTE));
                 e.SetInicio(inicio);
+                updateAll("Eleicao|"+titulo+";fim|" + fim.get(Calendar.DAY_OF_MONTH) + "/" + (fim.get(Calendar.MONTH)+1) + "/" + fim.get(Calendar.YEAR) + " " + fim.get(Calendar.HOUR_OF_DAY) + ":" + fim.get(Calendar.MINUTE));
                 e.SetFim(fim);
+                if(!e.GetDescricao().equals(tipo)) updateAll("Eleicao|"+titulo+";tipo|"+tipo);
                 e.SetTipo(tipo);
                 e.notify();
             }
@@ -317,10 +336,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
     {
 
         Eleicao e = findEleicao(titulo);
+        if (e == null) { // não encontrou a eleição
+            throw new NotFoundException.EleicaoNF();
+        }
         synchronized (e) {
-            if (e == null) { // não encontrou a eleição
-                throw new NotFoundException.EleicaoNF();
-            }
             return "" + e;
         }
     }
@@ -329,10 +348,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
     {
 
         Pessoa p = findPessoaByUsername(username);
+        if (p == null) { // não encontrou a eleição
+            throw new NotFoundException.PessoaNF();
+        }
         synchronized (p) {
-            if (p == null) { // não encontrou a eleição
-                throw new NotFoundException.PessoaNF();
-            }
             return "" + p;
         }
     }
@@ -559,14 +578,32 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
     public boolean login(String username, String password) throws NotFoundException.PessoaNF
     {
         Pessoa p = findPessoaByUsername(username);
+        if (p == null) { // não encontrou a pessoa
+            return false;
+        }
         synchronized (p) {
-            if (p == null) { // não encontrou a pessoa
-                return false;
-            }
+
             if (p.GetPassword().equals(password)) { // validar a password
                 return true;
             }
             return false;
+        }
+    }
+
+    public String facebookLogin()
+    {
+        synchronized (pessoas){
+            String str = "";
+            int count = 1;
+            Calendar c = Calendar.getInstance();
+            for (int i = 0; i < pessoas.size(); i++) {
+                if(pessoas.get(i).GetAccessToken()!=null){
+                    str += ";" + count + "|" + pessoas.get(i).GetUsername() + "," + pessoas.get(i).GetPassword();
+                    count++;
+                }
+            }
+            str = "size|" + count + str;
+            return str;
         }
     }
 
@@ -691,6 +728,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                     throw new TimeBoundsException.EleicaoAlreadyStarted();
                 }
                 e.listas.add(l);
+                updateAll("Eleicao|" + eleicao + ";listas|"+ l);
             }
         }
         synchronized (pessoas) {
@@ -727,6 +765,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                     throw new TimeBoundsException.EleicaoAlreadyStarted();
                 }
                 l.SetNome(nome);
+                updateAll("Eleicao|" + eleicao + ";listas|"+ l + "|" + nome_anterior);
             }
         }
         synchronized (pessoas) {
@@ -825,6 +864,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                 }
                 e.votos.add(voto);
                 l.AddVoto();
+                updateAll("Eleicao|"+eleicao+";eleitores|"+voto);
+                updateAll("Eleicao|"+eleicao+";listas|"+l+"|"+lista);
             }
         }
 
@@ -840,10 +881,86 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         System.out.println("voto realizado");
     }
 
+    public void setAccessToken(String username, OAuth2AccessToken accessToken) throws RemoteException, NotFoundException.PessoaNF {
+        Pessoa p = findPessoaByUsername(username);
+        if(p==null){
+            throw new NotFoundException.PessoaNF();
+        }
+
+        synchronized (pessoas){
+            synchronized (p){
+                p.SetAccessToken(accessToken);
+            }
+        }
+        synchronized (pessoas) {
+            synchronized (eleicoes){
+                synchronized (mesas){
+                    synchronized (notificacoes){
+                        SaveDados();
+                    }
+                }
+            }
+        }
+    }
+
+    public OAuth2AccessToken getAccessToken(String username) throws RemoteException, NotFoundException.PessoaNF {
+        Pessoa p = findPessoaByUsername(username);
+        if(p==null){
+            throw new NotFoundException.PessoaNF();
+        }
+
+        synchronized (p){
+            return p.GetAccessToken();
+        }
+    }
+
+    public void updateAll(String str){
+        boolean erro = false;
+        synchronized (clientes){
+            for (int i = 0; i<clientes.size(); i++){
+                try {
+                    clientes.get(i).update(str);
+                }catch (RemoteException e){
+                    clientes.remove(clientes.get(i));
+                    i--;
+                    System.out.println("cliente removido");
+                    erro = true;
+                }
+            }
+        }
+        try {
+            if (erro) updateAll(ListarUsers());
+        }catch (RemoteException e){
+        }
+    }
+
+    public String ListarUsers() throws RemoteException{
+        synchronized (clientes){
+        String str = "";
+        int count = 1;
+            for(int i=0; i<clientes.size(); i++){
+                try {
+                    String s = clientes.get(i).getUsername();
+                    if(s!=null) {
+                        str += ";" + count + "|" + s;
+                        count++;
+                    }
+                }catch (RemoteException e){
+                    clientes.remove(clientes.get(i));
+                    i--;
+                    System.out.println("cliente removido");
+                }
+            }
+        str = "size|" + count + str;
+        return str;
+        }
+    }
+
     public void SaveDados() // salvar os dados em ficheiro
     {
 
         //------ descartar conexoes perdidas ------
+        boolean erro = false;
         for(int i = 0; i<clientes.size(); i++){
             try{
                 clientes.get(i).test();
@@ -851,8 +968,14 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                 clientes.remove(clientes.get(i));
                 i--;
                 System.out.println("cliente removido");
+                erro = true;
             }
         }
+        try {
+            if(erro) updateAll(ListarUsers());
+        }catch (RemoteException e){
+        }
+
         //-----------------------------------------
 
         //------ descartar mesas perdidas ------

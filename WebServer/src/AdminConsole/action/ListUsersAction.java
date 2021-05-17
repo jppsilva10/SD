@@ -20,7 +20,8 @@ public class ListUsersAction extends ActionSupport implements SessionAware {
         this.username = username;
     }
 
-    public String execute() {
+    public String execute()
+    {
         AdminConsoleBean acb;
         try {
             acb = getAdminConsoleBean();
@@ -32,7 +33,8 @@ public class ListUsersAction extends ActionSupport implements SessionAware {
         return "success";
     }
 
-    public String setUserDetails(){
+    public String setUserDetails()
+    {
         //String username = params.get("username");
         AdminConsoleBean acb;
         try {
@@ -45,7 +47,8 @@ public class ListUsersAction extends ActionSupport implements SessionAware {
         return acb.setUserDetails(username);
     }
 
-    public AdminConsoleBean getAdminConsoleBean() throws NotBoundException, RemoteException {
+    public AdminConsoleBean getAdminConsoleBean() throws NotBoundException, RemoteException
+    {
         if(!session.containsKey("AdminConsoleBean"))
             this.setAdminConsoleBean(new AdminConsoleBean());
         return (AdminConsoleBean) session.get("AdminConsoleBean");

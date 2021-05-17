@@ -18,24 +18,16 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @ServerEndpoint(value = "/ws")
-public class WebSocketAnnotation {
+public class WebSocketAnnotation implements WSInterface{
 
     String RmiAddress;
     int RmiPort;
     Calendar Timer;
     AdminConsole console;
 
-    private static final AtomicInteger sequence = new AtomicInteger(1);
-    private final String username;
     private Session session;
     private String titulo;
     private static final Set<WebSocketAnnotation> users = new CopyOnWriteArraySet<>();
-
-    public WebSocketAnnotation() {
-        username = "User" + sequence.getAndIncrement();
-    }
-
-
 
     public void config() // ler o ficheiro de configuração
     {
@@ -77,6 +69,7 @@ public class WebSocketAnnotation {
             this.config();
             console.rs = (RmiServer) LocateRegistry.getRegistry(this.RmiAddress,this.RmiPort).lookup("server");
             console.rs.subscribe((RmiClient) console);
+            console.setWs((WSInterface)this);
         } catch (RemoteException | NotBoundException e) {
             handleError(e);
         }
@@ -135,8 +128,12 @@ public class WebSocketAnnotation {
         sendMessage("fim|"+ info[i].split(": ")[1]);
         i+=2;
         if (i>=info.length) return;
-        for(; info[i].split(": ").length==1 && i<info.length; i++){
+        for(; !info[i].equals("Resultado:") && i<info.length; i++){
             sendMessage("eleitores|"+ info[i]);
+        }
+        i++;
+        for(; i<info.length; i++){
+            sendMessage("resultado|"+ info[i]);
         }
 
     }
@@ -161,5 +158,30 @@ public class WebSocketAnnotation {
 				e1.printStackTrace();
 			}
 		}
+    }
+
+    @Override
+    public void update(String str) {
+        if(str.startsWith("Eleicao"))
+        System.out.println(str);
+        String[] info = str.split(";");
+        if(titulo!=null) {
+            if (info[0].split("\\|")[1].equals(titulo)){
+                String[] info2 = info[1].split("\\|");
+                if(info2[0].equals("resultado")){
+                    String[] info3 = info2[1].split("\n");
+                    for(int i=0; i<info3.length; i++){
+                        sendMessage("resultado|"+info3[i]);
+                    }
+                }
+                else if(info2[0].equals("titulo")){
+                    this.titulo=info2[1];
+                    sendMessage(info[1]);
+                }
+                else {
+                    sendMessage(info[1]);
+                }
+            }
+        }
     }
 }

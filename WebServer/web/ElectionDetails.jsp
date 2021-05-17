@@ -70,11 +70,19 @@
                     element.innerHTML = "Tipo: "+ info[1];
                     break;
                 case "listas":
-                    var line = document.createElement('p');
-                    line.style.wordWrap = 'break-word';
-                    line.innerHTML = "    " + info[1];
-                    element.appendChild(line);
-                    element.scrollTop = element.scrollHeight;
+                    if(info.length == 2) {
+                        var line = document.createElement('p');
+                        line.id = info[1].split(" - ")[0];
+                        line.style.wordWrap = 'break-word';
+                        line.innerHTML = "    " + info[1];
+                        element.appendChild(line);
+                        element.scrollTop = element.scrollHeight;
+                    }
+                    else{
+                        var l = document.getElementById(info[2]);
+                        l.id = info[1].split(" - ")[0];
+                        l.innerHTML = "    " + info[1];
+                    }
                     break;
                 case "inicio":
                     element.innerHTML = "Inicio: "+ info[1];
@@ -83,6 +91,13 @@
                     element.innerHTML = "Fim: "+ info[1];
                     break;
                 case "eleitores":
+                    var line = document.createElement('p');
+                    line.style.wordWrap = 'break-word';
+                    line.innerHTML = "    " + info[1];
+                    element.appendChild(line);
+                    element.scrollTop = element.scrollHeight;
+                    break;
+                case "resultado":
                     var line = document.createElement('p');
                     line.style.wordWrap = 'break-word';
                     line.innerHTML = "    " + info[1];
@@ -103,11 +118,13 @@
     <p id="descricao">Descricao: </p>
     <p id="tipo">Tipo: </p>
     <p>Listas: </p>
-    <div id="container"><div id="listas"></div></div>
+    <div id="container1"><div id="listas"></div></div>
     <p id="inicio">Inicio: </p>
     <p id="fim">Fim: </p>
     <p>Eleitores: </p>
-    <div id="container"><div id="eleitores"></div></div>
+    <div id="container2"><div id="eleitores"></div></div>
+    <p>Resultado: </p>
+    <div id="container3"><div id="resultado"></div></div>
 
   <c:forEach items="${AdminConsoleBean.electionDetails}" var="value">
       <c:out value="${value}" /><br>

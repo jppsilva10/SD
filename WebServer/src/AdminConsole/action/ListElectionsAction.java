@@ -13,11 +13,13 @@ public class ListElectionsAction extends ActionSupport implements SessionAware {
     private Map<String, Object> session;
     private String titulo;
 
-    public void setTitulo(String titulo) {
+    public void setTitulo(String titulo)
+    {
         this.titulo = titulo;
     }
 
-    public String execute() {
+    public String execute()
+    {
         AdminConsoleBean acb;
         try {
             acb = getAdminConsoleBean();
@@ -29,7 +31,8 @@ public class ListElectionsAction extends ActionSupport implements SessionAware {
         return "success";
     }
 
-    public String setElectionDetails(){
+    public String setElectionDetails()
+    {
         //String username = params.get("username");
         AdminConsoleBean acb;
         try {
@@ -42,7 +45,8 @@ public class ListElectionsAction extends ActionSupport implements SessionAware {
         return acb.setElectionDetails(titulo);
     }
 
-    public AdminConsoleBean getAdminConsoleBean() throws NotBoundException, RemoteException {
+    public AdminConsoleBean getAdminConsoleBean() throws NotBoundException, RemoteException
+    {
         if(!session.containsKey("AdminConsoleBean"))
             this.setAdminConsoleBean(new AdminConsoleBean());
         return (AdminConsoleBean) session.get("AdminConsoleBean");

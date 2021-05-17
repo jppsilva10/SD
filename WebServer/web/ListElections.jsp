@@ -8,7 +8,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
     <title>Title</title>
 </head>
-<>
+
 <c:choose>
     <c:when test="${AdminConsoleBean.test}">
         <p> Eleicoes: </p><br>
@@ -25,6 +25,6 @@
         <p> Ligacao perdida! </p><br>
     </c:otherwise>
 </c:choose>
-<>
+
 </body>
 </html>

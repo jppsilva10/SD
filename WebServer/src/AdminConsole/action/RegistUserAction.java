@@ -21,7 +21,6 @@ public class RegistUserAction extends ActionSupport implements SessionAware {
 
 
     public void setNumero_CC(String numero_CC) {
-
         this.numero_CC = numero_CC;
     }
 
@@ -70,7 +69,8 @@ public class RegistUserAction extends ActionSupport implements SessionAware {
     }
 
     @Override
-    public String execute() {
+    public String execute()
+    {
         try {
             acb = getAdminConsoleBean();
         } catch (NotBoundException e) {
@@ -96,7 +96,8 @@ public class RegistUserAction extends ActionSupport implements SessionAware {
         return "success";
     }
 
-    public ArrayList<String> getDaysList(){
+    public ArrayList<String> getDaysList()
+    {
         ArrayList<String> list = new ArrayList<String>();
         for(int i=1; i<32; i++){
             list.add("" + i);
@@ -104,7 +105,8 @@ public class RegistUserAction extends ActionSupport implements SessionAware {
         return list;
     }
 
-    public ArrayList<String> getMonthsList(){
+    public ArrayList<String> getMonthsList()
+    {
         ArrayList<String> list = new ArrayList<String>();
         for(int i=1; i<13; i++){
             list.add("" + i);
@@ -112,7 +114,8 @@ public class RegistUserAction extends ActionSupport implements SessionAware {
         return list;
     }
 
-    public ArrayList<String> getYearsList(){
+    public ArrayList<String> getYearsList()
+    {
         ArrayList<String> list = new ArrayList<String>();
         for(int i=2000; i<2031; i++){
             list.add("" + i);
@@ -120,7 +123,8 @@ public class RegistUserAction extends ActionSupport implements SessionAware {
         return list;
     }
 
-    public AdminConsoleBean getAdminConsoleBean() throws NotBoundException, RemoteException {
+    public AdminConsoleBean getAdminConsoleBean() throws NotBoundException, RemoteException
+    {
         if(!session.containsKey("AdminConsoleBean"))
             this.setAdminConsoleBean(new AdminConsoleBean());
         return (AdminConsoleBean) session.get("AdminConsoleBean");

@@ -28,62 +28,7 @@ public class AdminConsoleBean {
     private String userDetails;
     private String electionDetails;
 
-    public String getTitulo(){
-        return titulo;
-    }
-
-    public String setUserDetails(String username) {
-        this.username = username;
-        return "success";
-    }
-
-    public String setElectionDetails(String title) {
-        titulo = title;
-        return "success";
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    private List<String> dayList;
-    private String day;
-
-    private void setDayList(){
-        dayList = new ArrayList<String>();
-        for(int i=0; i<0; i++){
-            dayList.add(""+i);
-        }
-    }
-
-    private void setDay(String day){
-        this.day = day;
-    }
-
-    public List<String> getDayList() {
-        dayList = new ArrayList<String>();
-        for(int i=0; i<0; i++){
-            dayList.add(""+i);
-        }
-        return dayList;
-    }
-
-    public boolean getTest(){
-        Timer = Calendar.getInstance();
-        Timer.add(Calendar.SECOND, 30);
-        while(true) {
-            try {
-                console.rs.getVoto("", "");
-                break;
-            } catch (RemoteException e) {
-                console.rebind();
-                if (Timer.after(Calendar.getInstance())) continue;
-                return false;
-            }
-        }
-        return true;
-    }
-
+    //----------------------------------Set Up-----------------------------------------
 
     public void config() // ler o ficheiro de configuração
     {
@@ -117,33 +62,30 @@ public class AdminConsoleBean {
         return m;
     }
 
-    public AdminConsoleBean() throws RemoteException, NotBoundException {
-            console = new AdminConsole();
-            this.config();
-            console.rs = (RmiServer) LocateRegistry.getRegistry(this.RmiAddress,this.RmiPort).lookup("server");
-            console.rs.subscribe((RmiClient) console);
+    public AdminConsoleBean() throws RemoteException, NotBoundException
+    {
+        console = new AdminConsole();
+        this.config();
+        console.rs = (RmiServer) LocateRegistry.getRegistry(this.RmiAddress,this.RmiPort).lookup("server");
+        console.rs.subscribe((RmiClient) console);
     }
 
-    public String createPessoa(String tipo, String nome, String username, String password, String departamento, String contacto, String morada, String numero_CC, Calendar validade_CC){
-        Timer = Calendar.getInstance();
-        Timer.add(Calendar.SECOND, 30);
-        while(true) {
-            try {
-                console.rs.createPessoa(tipo, nome, username, password, departamento, contacto, morada, numero_CC, validade_CC);
-                break;
-            } catch (DataConflictException.DuplicatedNumero_CC duplicatedNumero_cc) {
-                return "";
-            } catch (RemoteException e) {
-                console.rebind();
-                if (Timer.after(Calendar.getInstance())) continue;
-                return "";
-            } catch (DataConflictException.DuplicatedUsername duplicatedUsername) {
-                return "";
-            }
-        }
+    //--------------------------------------------------------------------------------------------
+
+    //---------------------------------------User Details----------------------------------------------
+    public String setUserDetails(String username)
+    {
+        this.username = username;
         return "success";
     }
-    public ArrayList<String> getUsersList(){
+
+    public void setUsername(String username)
+    {
+        this.username = username;
+    }
+
+    public ArrayList<String> getUsersList()
+    {
 
         ArrayList<String> list = new ArrayList<String>();
 
@@ -167,7 +109,9 @@ public class AdminConsoleBean {
         }
         return list;
     }
-    public String getUserDetails(){
+
+    public String getUserDetails()
+    {
         Timer = Calendar.getInstance();
         Timer.add(Calendar.SECOND, 30);
         while(true) {
@@ -184,8 +128,22 @@ public class AdminConsoleBean {
         }
         return userDetails;
     }
+    //-------------------------------------------------------------------------------------------
 
-    public ArrayList<String> getElectionsList(){
+    //--------------------------------------Election Details------------------------------------
+
+    public String getTitulo(){
+        return titulo;
+    }
+
+    public String setElectionDetails(String title)
+    {
+        titulo = title;
+        return "success";
+    }
+
+    public ArrayList<String> getElectionsList()
+    {
 
         ArrayList<String> list = new ArrayList<String>();
 
@@ -209,7 +167,9 @@ public class AdminConsoleBean {
         }
         return list;
     }
-    public String[] getElectionDetails(){
+
+    public String[] getElectionDetails()
+    {
         Timer = Calendar.getInstance();
         Timer.add(Calendar.SECOND, 30);
         while(true) {
@@ -228,13 +188,47 @@ public class AdminConsoleBean {
         String[] details = electionDetails.split("\n");
         return details;
     }
+    //----------------------------------------------------------------------------------
 
-    public ArrayList<String> getDayslist(){
-        ArrayList<String> list = new ArrayList<String>();
-        for(int i=1; i<32; i++){
-            list.add("" + i);
+    //-----------------------------Regist User--------------------------------------------
+
+    public String createPessoa(String tipo, String nome, String username, String password, String departamento, String contacto, String morada, String numero_CC, Calendar validade_CC)
+    {
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                console.rs.createPessoa(tipo, nome, username, password, departamento, contacto, morada, numero_CC, validade_CC);
+                break;
+            } catch (DataConflictException.DuplicatedNumero_CC duplicatedNumero_cc) {
+                return "";
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return "";
+            } catch (DataConflictException.DuplicatedUsername duplicatedUsername) {
+                return "";
+            }
         }
-        return list;
+        return "success";
+    }
+    //------------------------------------------------------------------------------
+
+    public boolean getTest()
+    {
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                console.rs.getVoto("", "");
+                break;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return false;
+            }
+        }
+        return true;
     }
 
 }

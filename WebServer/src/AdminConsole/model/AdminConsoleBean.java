@@ -27,6 +27,10 @@ public class AdminConsoleBean {
     private String titulo;
     private String userDetails;
     private String electionDetails;
+    private String descricao;
+    private String tipo;
+    private String inicio;
+    private String fim;
 
     //----------------------------------Set Up-----------------------------------------
 
@@ -136,9 +140,29 @@ public class AdminConsoleBean {
         return titulo;
     }
 
+    public String getElectionDescricao()
+    {
+ 	return descricao;
+    }
+
+    public String getElectionTipo()
+    {
+ 	return tipo;
+    }
+
     public String setElectionDetails(String title)
     {
         titulo = title;
+        return "success";
+    }
+
+    public String setElectionDetails2(String title, String descricao, String tipo, Calendar inicio, Calendar fim)
+    {
+        titulo = title;
+	this.descricao = descricao;
+	this.tipo = tipo;
+	this.inicio = inicio;
+ 	this.fim = fim;
         return "success";
     }
 
@@ -187,6 +211,52 @@ public class AdminConsoleBean {
 
         String[] details = electionDetails.split("\n");
         return details;
+    }
+
+    public String createElection(String titulo, String descricao, String tipo, Calendar inicio, Calendar fim)
+    {
+	Timer = Calendar.getInstance();
+	Timer.add(Calendar.SECOND, 30);
+	
+	while(true) {
+            try {
+                console.rs.createEleicao(titulo, descricao, inicio, fim, tipo);
+                break;
+            } catch (DataConflictException e) {
+                return "";
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return "";
+            }
+        }
+        return "success";
+   }	
+
+   public ArrayList<String> getListasList()
+   {
+
+	ArrayList<String> list = new ArrayList<String>();
+
+        Properties map = null;
+
+	Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                map = GetHashMap(console.rs.listarListas(titulo));
+                break;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return list;
+            }
+        }
+
+	for (int i = 1; i < Integer.parseInt(map.getProperty("size")); i++) {
+            list.add(map.getProperty("" + i));
+        }
+        return list;
     }
     //----------------------------------------------------------------------------------
 

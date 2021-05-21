@@ -16,12 +16,13 @@ public class CreateElectionAction extends ActionSupport implements SessionAware 
     AdminConsoleBean acb;
 
     private String dia_i = null;
-    private String mes_ i = null;
+    private String mes_i = null;
     private String ano_i = null;
     private String dia_f = null;
-    private String mes_ f = null;
+    private String mes_f = null;
     private String ano_f = null;
     private String titulo=null, descricao=null, tipo=null;
+    private GregorianCalendar inicio, fim;
 
    public void setTitulo(String titulo){
 	this.titulo = titulo;
@@ -31,7 +32,7 @@ public class CreateElectionAction extends ActionSupport implements SessionAware 
 	this.descricao = descricao;
    }
 
-   public void setTipo(String tipo{
+   public void setTipo(String tipo){
 	this.tipo = tipo;
    }
 
@@ -76,7 +77,7 @@ public class CreateElectionAction extends ActionSupport implements SessionAware 
 	inicio = new GregorianCalendar(Integer.parseInt(dia_i), Integer.parseInt(mes_i)-1, Integer.parseInt(ano_i));
 	fim = new GregorianCalendar(Integer.parseInt(dia_f), Integer.parseInt(mes_f)-1, Integer.parseInt(ano_f));
 	
-	String str = acb.createElection(titulo, descricao, tipo, Calendar inicio, Calendar fim);	
+	String str = acb.createElection(titulo, descricao, tipo, inicio, fim);
 
 	if(str.equals("success")){
             return "success";

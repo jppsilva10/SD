@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class EditElectionAction extends ActionSupport implements SessionAware {
     private static final long serialVersionUID = 4L;
@@ -18,10 +19,10 @@ public class EditElectionAction extends ActionSupport implements SessionAware {
     private String descricao;
     private String tipo;
     private String dia_i = null;
-    private String mes_ i = null;
+    private String mes_i = null;
     private String ano_i = null;
     private String dia_f = null;
-    private String mes_ f = null;
+    private String mes_f = null;
     private String ano_f = null;
     private String tituloAnterior;
     private Calendar inicio, fim;
@@ -39,7 +40,7 @@ public class EditElectionAction extends ActionSupport implements SessionAware {
     }
 
     public void setTituloAnterior(String tituloAnterior){
-	this.tituloAnterior = tituloAnterior,
+	this.tituloAnterior = tituloAnterior;
     } 
     
     @Override
@@ -53,10 +54,13 @@ public class EditElectionAction extends ActionSupport implements SessionAware {
         } catch (RemoteException e) {
             return "fail";
         }
-	
-	inicio = new GregorianCalendar(Integer.parseInt(dia_i), Integer.parseInt(mes_i)-1, Integer.parseInt(ano_i));
-	fim = new GregorianCalendar(Integer.parseInt(dia_f), Integer.parseInt(mes_f)-1, Integer.parseInt(ano_f));
-	String str = acb.editEleicao(titulo, descricao, inicio, fim, tipo, tituloAnterior)
+
+    inicio = Calendar.getInstance();
+    fim = Calendar.getInstance();
+    inicio.set(Integer.parseInt(ano_i), Integer.parseInt(mes_i), Integer.parseInt(dia_i), 0, 0 ,0);
+    fim.set(Integer.parseInt(ano_f), Integer.parseInt(mes_f), Integer.parseInt(dia_f), 0, 0 ,0);
+
+	String str = acb.editEleicao(titulo, descricao, inicio, fim, tipo, tituloAnterior);
 	
         return "success";
     }

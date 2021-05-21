@@ -11,11 +11,7 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Properties;
-
+import java.util.*;
 
 
 public class AdminConsoleBean {
@@ -29,8 +25,9 @@ public class AdminConsoleBean {
     private String electionDetails;
     private String descricao;
     private String tipo;
-    private String inicio;
-    private String fim;
+    private Calendar inicio;
+    private Calendar fim;
+    private String lista;
 
     //----------------------------------Set Up-----------------------------------------
 
@@ -156,29 +153,30 @@ public class AdminConsoleBean {
         return "success";
     }
 
+    public String setListaTitulo(String title){
+       	lista = title;
+	    return "success";
+    }
+
     public String setElectionDetails2()
     {
         String[] details = electionDetails.split("\n");
-	String info = "";
-	String id= "";
-	for (String s: details){
-		info = s.split("|");
-		id = info[0];
-		switch(id){	
-                  case "descricao":
-	           this.drescricao = info[1];
-		   break;
-		  case "tipo":
-		   this.tipo = info[1];
-		   break;
-		  case "inicio":
-                    this.inicio = info[1];
-                    break;
-                  case "fim":
-                    this.fim = info[1];	
-                    break;
-		}		
-	}
+        String[] date_details;
+
+        this.descricao = details[1].split(": ")[1];
+        this.tipo = details[2].split(": ")[1];
+        int i = 4;
+        for(; details[i].split(": ").length==1; i++){}
+
+        date_details = details[i].split(": ")[1].split("/"); // [dd/mm/yyy]  para  [dd, mm, yy]
+        this.inicio = Calendar.getInstance();
+        this.inicio.set(Integer.parseInt(date_details[2]), Integer.parseInt(date_details[1]), Integer.parseInt(date_details[0]), 0, 0 ,0);
+
+        i++;
+        date_details = details[i].split(": ")[1].split("/");
+        this.fim = Calendar.getInstance();
+        this.fim.set(Integer.parseInt(date_details[2]), Integer.parseInt(date_details[1]), Integer.parseInt(date_details[0]),0, 0 ,0);
+
         return "success";
     }
 
@@ -247,7 +245,32 @@ public class AdminConsoleBean {
             }
         }
         return "success";
-   }	
+   }
+
+   public String editEleicao(String titulo, String descricao, Calendar inicio, Calendar fim, String tipo, String tituloAnterior)
+   {
+       Timer = Calendar.getInstance();
+       Timer.add(Calendar.SECOND, 30);
+
+       while(true) {
+           try {
+               console.rs.editEleicao(titulo, descricao, inicio, fim, tipo, tituloAnterior);
+               break;
+           } catch (DataConflictException e) {
+               return "";
+           } catch (RemoteException e) {
+               console.rebind();
+               if (Timer.after(Calendar.getInstance())) continue;
+               return "";
+           } catch (TimeBoundsException.EleicaoAlreadyStarted eleicaoAlreadyStarted) {
+               eleicaoAlreadyStarted.printStackTrace();
+           } catch (NotFoundException.EleicaoNF eleicaoNF) {
+               eleicaoNF.printStackTrace();
+           }
+       }
+       return "success";
+
+   }
 
    public ArrayList<String> getListasList()
    {
@@ -262,7 +285,7 @@ public class AdminConsoleBean {
             try {
                 map = GetHashMap(console.rs.listarListas(titulo));
                 break;
-            } catch (RemoteException e) {
+            } catch (RemoteException | NotFoundException.EleicaoNF e) {
                 console.rebind();
                 if (Timer.after(Calendar.getInstance())) continue;
                 return list;
@@ -273,6 +296,58 @@ public class AdminConsoleBean {
             list.add(map.getProperty("" + i));
         }
         return list;
+    }
+
+    public ArrayList<String> getPessoasList(){
+	ArrayList<String> list = new ArrayList<String>();
+
+        Properties map = null;
+
+	Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                map = GetHashMap(console.rs.listarPessoaPorLista(titulo, lista));
+                break;
+            } catch (RemoteException e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return list;
+            } catch (NotFoundException.ListaNF listaNF) {
+                listaNF.printStackTrace();
+            } catch (NotFoundException.EleicaoNF eleicaoNF) {
+                eleicaoNF.printStackTrace();
+            }
+        }
+
+	    for (int i = 1; i < Integer.parseInt(map.getProperty("size")); i++) {
+                list.add(map.getProperty("" + i));
+            }
+	    return list;
+    }
+
+
+    public String novaLista(String novoTitulo)
+    {
+
+        Timer = Calendar.getInstance();
+        Timer.add(Calendar.SECOND, 30);
+        while(true) {
+            try {
+                console.rs.addLista(titulo, novoTitulo);
+                break;
+            } catch (RemoteException | NotFoundException.EleicaoNF e) {
+                console.rebind();
+                if (Timer.after(Calendar.getInstance())) continue;
+                return "";
+            } catch (DataConflictException e) {
+                e.printStackTrace();
+            } catch (TimeBoundsException.EleicaoAlreadyStarted eleicaoAlreadyStarted) {
+                eleicaoAlreadyStarted.printStackTrace();
+            }
+        }
+
+        return "success";
     }
     //----------------------------------------------------------------------------------
 

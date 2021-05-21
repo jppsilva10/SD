@@ -113,19 +113,24 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
       </action>
 
      <action name="GoEditElection" class="AdminConsole.action.GoEditElectionAction" method="execute">
-	  <result name="success">/ElectionEdit.jsp</result>
+          <result name="success">/ElectionEdit.jsp</result>
           <result name="fail">/index.jsp</result>
       </action>
 
      <action name="EditElection" class="AdminConsole.action.EditElectionAction" method="execute">
-	  <result name="success">/ListElections.jsp</result>
+          <result name="success">/ListElections.jsp</result>
           <result name="fail">/index.jsp</result>
-      </action>
+     </action>
 
      <action name="ListaEdit" class="AdminConsoleBean.action.ListaEditAction" method="execute">
-	  <result name="success">/ElectionEdit.jsp</result>
+	      <result name="success">/ElectionEdit.jsp</result>
           <result name="fail">/index.jsp</result>
-      </action>
+     </action>
+
+     <action name="CreateEdit" class="AdminConsoleBean.action.CreateListaAction" method="execute">
+          <result name="success">/ElectionEdit.jsp</result>
+          <result name="fail">/index.jsp</result>
+     </action>
 
   </package>
 

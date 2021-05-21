@@ -15,144 +15,62 @@ class StatusLista {
 
     Map<String, String> lista = new HashMap<String, String>();  // Dicionario <id, status>
 
-    ArrayList<String> users = new ArrayList<>();
-    ArrayList<String> terminals = new ArrayList<>();
-    RmiServer rs;
-
-    public void setRs(RmiServer rs){
-        this.rs = rs;
+    synchronized boolean exist(String id) {
+        return lista.containsKey(id);
     }
 
-    public void addUser(String str){
-        synchronized (users) {
-            if (users.contains(str)) return;
-            users.add(str);
-        }
-        try {
-            rs.updateAll(rs.ListarUsers());
-        }catch (RemoteException e){
-        }
-    }
-
-    public void removeUser(String str){
-        synchronized (users) {
-            if (!users.contains(str)) return;
-            users.remove(str);
-        }
-        try {
-            rs.updateAll(rs.ListarUsers());
-        }catch (RemoteException e){
-        }
-    }
-
-    public void addTerminal(String str){
-        synchronized (terminals) {
-            if (terminals.contains(str)) return;
-            terminals.add(str);
-        }
-        try {
-            rs.updateAll("type|mesas;"+rs.listarMesas());
-        }catch (RemoteException e){
-        }
-    }
-
-    public void removeTerminal(String str){
-        synchronized (terminals) {
-            if (!terminals.contains(str)) return;
-            terminals.remove(str);
-        }
-        try {
-            rs.updateAll("type|mesas;"+rs.listarMesas());
-        }catch (RemoteException e){
-        }
-    }
-
-    boolean exist(String id) {
-        synchronized (lista) {
-            return lista.containsKey(id);
-        }
-    }
-
-    void add(String id)
+    synchronized void add(String id)
     {
-        synchronized (lista) {
-            lista.put(id, "ready");
-        }
+        lista.put(id, "ready");
         mc.doNotify();
     }
 
-    void put(String key, String value){
-        synchronized (lista) {
-            lista.put(key, value);
-        }
-    }
+    synchronized void put(String key, String value){ lista.put(key, value);}
 
-    void change_status(String id, String new_status)
+    synchronized void change_status(String id, String new_status)
     {
-        synchronized (lista) {
-            lista.replace(id, new_status);
-        }
-        try {
-            rs.updateAll("type|mesas;"+rs.listarMesas());
-        }catch (RemoteException e){
-        }
+        lista.replace(id, new_status);
         mc.doNotify();
     }
 
-    String getStatus(String key){
-        synchronized (lista) {
-            return lista.get(key);
-        }
+    synchronized String getStatus(String key){ return lista.get(key);}
+
+    synchronized void remove(String id) {
+        lista.remove(id);
     }
 
-    void remove(String id) {
-        synchronized (lista) {
-            lista.remove(id);
-        }
-    }
-
-    void assignTerminal(String id, String nome)
+    synchronized void assignTerminal(String id, String nome)
     {
-        synchronized (lista) {
-            lista.put("using " + id, nome);
-        }
+        lista.put("using " + id, nome);
         mc.doNotify();
     }
 
-    void print_all(){
-        synchronized (lista) {
-            for (Map.Entry<String, String> entry : lista.entrySet()) {
-                System.out.println(entry.getKey() + ":" + entry.getValue());
-            }
+    synchronized void print_all(){
+        for (Map.Entry<String, String> entry: lista.entrySet()){
+            System.out.println(entry.getKey() + ":" +entry.getValue());
         }
     }
 
-    String getNomeById(String id){
-        synchronized (lista) {
-            for (Map.Entry<String, String> entry : lista.entrySet()) {
-                if (entry.getKey().equals("using " + id)) {
-                    return entry.getValue();
-                }
+    synchronized String getNomeById(String id){
+        for (Map.Entry<String, String> entry: lista.entrySet()){
+            if(entry.getKey().equals("using "+id)){
+                return entry.getValue();
             }
         }
         return null;
     }
 
-    String procuraLivre(){   // Devolve o primeiro terminal livre que encontrar
-        synchronized (lista) {
-            for (Map.Entry<String, String> entry : lista.entrySet()) {
-                if (entry.getValue().equals("ready")) {
-                    return entry.getKey();
-                }
+    synchronized String procuraLivre(){   // Devolve o primeiro terminal livre que encontrar
+        for (Map.Entry<String, String> entry: lista.entrySet()){
+            if(entry.getValue().equals("ready")){
+                return entry.getKey();
             }
         }
         return null;
     }
 
-    Iterable<? extends Map.Entry<String, String>> entrySet() {
-        synchronized (lista) {
-            return lista.entrySet();
-        }
+    synchronized Iterable<? extends Map.Entry<String, String>> entrySet() {
+        return lista.entrySet();
     }
 }
 
@@ -273,11 +191,8 @@ public class MulticastServer extends Thread {
             server3.RmiPort = server.RmiPort;
 
             RmiServer s = (RmiServer) LocateRegistry.getRegistry(server.RmiAddress, server.RmiPort).lookup("server");
-            statusLista.setRs(s);
-
             //RmiServer s = (RmiServer) Naming.lookup("server");
             RmiMesaImp rm = new RmiMesaImp(s);
-            rm.setLists(statusLista.users, statusLista.terminals, statusLista.lista);
             server.rm = rm;
             server3.rm = rm;
 
@@ -320,13 +235,10 @@ public class MulticastServer extends Thread {
                 }
                 break;
             }
-
             if (erro == -1) {
                 System.out.println("Conexao perdida!");
                 return;
             }
-
-            statusList.setRs(this.rm.rs);
 
             while (true) {
                 erro = 0;
@@ -346,7 +258,6 @@ public class MulticastServer extends Thread {
                 System.out.println("Conexao perdida!");
                 return;
             }
-            statusList.setRs(this.rm.rs);
         }
         //------- Comunicar com os terminais -------
 
@@ -402,8 +313,6 @@ public class MulticastServer extends Thread {
                                 if (rm.rs.login(username, password)) {                                      // Check login validity
                                     message = "id|" + oper_lista.get("host") + ";type|valid";
                                     statusList.change_status(client_id, "election");              // Update Status
-                                    statusList.assignTerminal(oper_lista.get("host"), username);
-                                    statusList.addUser(username);
                                 }
                                 else{
                                     message = "id|" + oper_lista.get("host") + ";type|invalid";
@@ -464,7 +373,6 @@ public class MulticastServer extends Thread {
                                 statusList.put(statusList.getStatus("using "+ client_id), election);        // Entry for nome : election
                             }catch (RemoteException e) {
                                 System.out.println(e);
-                                System.out.println(e);
                                 rebind();
                                 if (Timer.after(Calendar.getInstance())) continue;
                                 erro = -1;
@@ -523,14 +431,6 @@ public class MulticastServer extends Thread {
                         statusList.change_status(oper_lista.get("host"), "ready");         // Resets terminal availability
 
                     }
-                    else if(oper_lista.get("type").equals("lock")){
-                        message = "id|" + oper_lista.get("host") + ";type|lock;";
-                        if(statusList.exist("using "+oper_lista.get("host"))){
-                            statusList.removeUser(statusList.getNomeById(oper_lista.get("host")));
-                            statusList.remove("using "+oper_lista.get("host"));
-                        }
-                        statusList.change_status(oper_lista.get("host"), "ready");
-                    }
                     System.out.println("MESSAGE TO " + oper_lista.get("host") + " : " + message);
                     byte[] buffer2 = message.getBytes();
                     DatagramPacket validation_packet = new DatagramPacket(buffer2, buffer2.length, group, PORT);
@@ -575,8 +475,7 @@ class MulticastServer2 extends Thread {
                 socket.receive(packet);
                 id_name = new String(packet.getData(), 0, packet.getLength());
                 statusList.add(id_name);
-                statusList.addTerminal(id_name);
-                System.out.println("New terminal connected: "+ id_name);
+                System.out.println("New id connected: "+ id_name);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -605,7 +504,6 @@ class MulticastServerConsole extends Thread {
         synchronized (rm.rs) {
             try {
                 rm.rs = (RmiServer) LocateRegistry.getRegistry(RmiAddress, RmiPort).lookup("server");
-                statusList.setRs(rm.rs);
             } catch (Exception e) {
             }
         }
@@ -709,9 +607,6 @@ class MulticastServerConsole extends Thread {
             if(erro==-1){
                 System.out.println("Conexao perdida");
                 continue;
-            }
-            else{
-                statusList.setRs(this.rm.rs);
             }
 
             if(atual==false){

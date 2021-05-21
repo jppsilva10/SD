@@ -22,7 +22,6 @@ public class Pessoa implements Serializable {
     protected String numero_CC;
     protected Calendar validade_CC;
     protected OAuth2AccessToken accessToken;
-    protected String id;
 
     public Pessoa(String tipo, String nome, String username, String password, String departamento, String contacto, String morada,String numero_CC, Calendar validade_CC) {
         this.tipo = tipo;
@@ -35,7 +34,6 @@ public class Pessoa implements Serializable {
         this.numero_CC = numero_CC;
         this.validade_CC = validade_CC;
         this.accessToken = null;
-        this.id = "";
     }
     public Boolean equals(Pessoa pessoa){
         if(this.numero_CC.equals(pessoa.numero_CC)) return true;
@@ -82,9 +80,6 @@ public class Pessoa implements Serializable {
         return validade_CC;
     }
     public OAuth2AccessToken GetAccessToken(){ return accessToken; }
-    public String GetId(){
-        return id;
-    }
     //-----------------------------------------------------------------------
     public void SetNome(String nome){
         this.nome = nome;
@@ -111,7 +106,4 @@ public class Pessoa implements Serializable {
         this.validade_CC = validade_CC;
     }
     public void SetAccessToken(OAuth2AccessToken accessToken){ this.accessToken = accessToken; }
-    public void SetId(String id){
-        this.id = id;
-    }
 }

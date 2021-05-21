@@ -28,10 +28,6 @@ public interface RmiServer extends Remote{
 
     String consultarEleicao(String titulo) throws RemoteException, NotFoundException.EleicaoNF;
 
-    Boolean EleicaoTerminada(String titulo) throws RemoteException, NotFoundException.EleicaoNF;
-
-    String Resultado(String titulo) throws RemoteException, NotFoundException.EleicaoNF;
-
     String consultarPessoa(String username) throws RemoteException, NotFoundException.PessoaNF;
 
     String consultarMesa(String id) throws RemoteException, NotFoundException.MesaNF;
@@ -52,8 +48,6 @@ public interface RmiServer extends Remote{
 
     String listarMesasPorEleicao(String eleicao) throws RemoteException, NotFoundException.EleicaoNF;
 
-    String listarMesasDisponiveis(String eleicao) throws RemoteException, NotFoundException.EleicaoNF;
-
     String listarEleicoesNaoIniciadas() throws RemoteException;
 
     String listarEleicoesIniciadas() throws RemoteException;
@@ -64,7 +58,7 @@ public interface RmiServer extends Remote{
 
    boolean login(String username, String password) throws RemoteException, NotFoundException.PessoaNF;
 
-    String login(String id) throws RemoteException, NotFoundException.PessoaNF;
+    String facebookLogin() throws RemoteException;
 
     Boolean getVoto(String numero_CC, String eleicao) throws RemoteException;
 
@@ -84,15 +78,11 @@ public interface RmiServer extends Remote{
 
     void removePessoa(String eleicao, String lista, String pessoa) throws RemoteException, NotFoundException.EleicaoNF, NotFoundException.ListaNF, TimeBoundsException.EleicaoAlreadyStarted, NotFoundException.PessoaNF;
 
-    void addVoto(String username, String eleicao, String lista, String mesa_id) throws RemoteException, NotFoundException.PessoaNF, NotFoundException.EleicaoNF, NotFoundException.MesaNF, NotFoundException.ListaNF, DataConflictException, TimeBoundsException.EleicaoAlreadyTerminated, DataConflictException.InvalidType;
+    void addVoto(String numero_CC, String eleicao, String lista, String mesa_id) throws RemoteException, NotFoundException.PessoaNF, NotFoundException.EleicaoNF, NotFoundException.MesaNF, NotFoundException.ListaNF, DataConflictException, TimeBoundsException.EleicaoAlreadyTerminated, DataConflictException.InvalidType;
 
-    boolean canVote(String username, String eleicao) throws RemoteException;
-
-    void setAccessToken(String username, OAuth2AccessToken accessToken, String Id) throws RemoteException, NotFoundException.PessoaNF;
+    void setAccessToken(String username, OAuth2AccessToken accessToken) throws RemoteException, NotFoundException.PessoaNF;
 
     OAuth2AccessToken getAccessToken(String username) throws RemoteException, NotFoundException.PessoaNF;
-
-    void updateAll(String str) throws RemoteException;
 
     String ListarUsers() throws RemoteException;
 

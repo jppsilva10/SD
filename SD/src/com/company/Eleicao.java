@@ -54,9 +54,9 @@ public class Eleicao  extends Thread implements Serializable {
         return null;
     }
 
-    public Mesa FindMesa(String mesa_id){ // procura uma mesa pelo seu nome
+    public Lista FindMesa(String mesa_id){ // procura uma mesa pelo seu nome
         for(int i=0; i<mesas.size(); i++){
-            if(mesas.get(i).GetId().equals(mesa_id)) return mesas.get(i);
+            if(mesas.get(i).GetId().equals(mesa_id)) return listas.get(i);
         }
         return null;
     }
@@ -87,7 +87,7 @@ public class Eleicao  extends Thread implements Serializable {
         str += "Tipo: " + tipo + "\n";
         str += "Lista:" + "\n";
         for(int i=0; i<listas.size(); i++){
-            str += listas.get(i) + "\n";
+            str += "\t" + listas.get(i) + "\n";
         }
         str += "Inicio: " + inicio.get(Calendar.DAY_OF_MONTH) + "/" + (inicio.get(Calendar.MONTH)+1) + "/" + inicio.get(Calendar.YEAR) + " " + inicio.get(Calendar.HOUR_OF_DAY) + ":" + inicio.get(Calendar.MINUTE) + "\n";
         str += "Fim: " + fim.get(Calendar.DAY_OF_MONTH) + "/" + (fim.get(Calendar.MONTH)+1) + "/" + fim.get(Calendar.YEAR) + " " + fim.get(Calendar.HOUR_OF_DAY) + ":" + fim.get(Calendar.MINUTE) + "\n";
@@ -95,7 +95,7 @@ public class Eleicao  extends Thread implements Serializable {
         str += "Eleitores:" + "\n";
 
         for(int i=0; i<votos.size(); i++){
-            str += votos.get(i) + "\n";
+            str += "" + votos.get(i) + "\n";
         }
 
         str += GetResultado();
@@ -121,9 +121,6 @@ public class Eleicao  extends Thread implements Serializable {
             }
             if(total!=0) {
                 str += "Vencedor: " + l.GetNome();
-            }
-            if(total==0){
-                str+= "Sem Vencedor";
             }
         }
         return str;

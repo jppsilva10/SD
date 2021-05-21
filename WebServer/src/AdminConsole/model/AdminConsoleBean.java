@@ -156,13 +156,29 @@ public class AdminConsoleBean {
         return "success";
     }
 
-    public String setElectionDetails2(String title, String descricao, String tipo, Calendar inicio, Calendar fim)
+    public String setElectionDetails2()
     {
-        titulo = title;
-	this.descricao = descricao;
-	this.tipo = tipo;
-	this.inicio = inicio;
- 	this.fim = fim;
+        String[] details = electionDetails.split("\n");
+	String info = "";
+	String id= "";
+	for (String s: details){
+		info = s.split("|");
+		id = info[0];
+		switch(id){	
+                  case "descricao":
+	           this.drescricao = info[1];
+		   break;
+		  case "tipo":
+		   this.tipo = info[1];
+		   break;
+		  case "inicio":
+                    this.inicio = info[1];
+                    break;
+                  case "fim":
+                    this.fim = info[1];	
+                    break;
+		}		
+	}
         return "success";
     }
 

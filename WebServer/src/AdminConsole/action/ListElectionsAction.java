@@ -42,6 +42,7 @@ public class ListElectionsAction extends ActionSupport implements SessionAware {
         } catch (RemoteException e) {
             return "fail";
         }
+
         return acb.setElectionDetails(titulo);
     }
 

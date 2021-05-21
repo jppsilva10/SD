@@ -55,6 +55,11 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
           <result name="fail">/index.jsp</result>
       </action>
 
+     <action name="GoEditElection" class="AdminConsole.action.GoEditElectionAction" method="execute">
+	  <result name="success">/ElectionEdit.jsp</result>
+          <result name="fail">/index.jsp</result>
+      </action>	
+
       <action name="ElectionDetails" class="AdminConsole.action.ListElectionsAction" method="setElectionDetails">
           <result name="success">/ElectionDetails.jsp</result>
           <result name="fail">/index.jsp</result>

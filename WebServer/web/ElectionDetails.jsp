@@ -126,6 +126,14 @@
     <p>Resultado: </p>
     <div id="container3"><div id="resultado"></div></div>
 
+    <br><br>
+    <s: url action="GoEditElection" var="link">
+	<s: param name="election"> <c: out value="Edit ${AdminConsoleBeam.titulo}" \> </s:param>
+    </s:url>
+    <p><a href="${link}">
+	<c:out value="Edit ${AdminConsoleBeam.titulo}" />
+    </a><br></p>
+ 
   <c:forEach items="${AdminConsoleBean.electionDetails}" var="value">
       <c:out value="${value}" /><br>
   </c:forEach>

@@ -61,7 +61,7 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
     }
 
     public String getUsername() throws RemoteException {
-        if(user!=null) return user.getPassword();
+        if(user!=null) return user.getUsername();
         return null;
     }
 
@@ -189,7 +189,7 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
             System.out.println("\t5 - Listar Pessoas");
             System.out.println("\t6 - Litar Eleicoes");
             System.out.println("\t7 - Litar Mesas");
-            System.out.println("\t8 - Conectar aoa facebook");
+            //System.out.println("\t8 - Conectar aoa facebook");
             switch (keyboardScanner.nextLine()) {
                 case "1": // ----------------------------- criar pessoa ------------------------------------
                     erro = 0;
@@ -1821,6 +1821,7 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
                         break;
                     }
                     break;
+                    /*
                 case "8":
                     try {
                         AccessToken();
@@ -1832,6 +1833,7 @@ public class AdminConsole extends UnicastRemoteObject implements RmiClient, Seri
                         e.printStackTrace();
                     }
                     break;
+                     */
                 default:
                     System.out.println("Opção invalida!");
                     continue;

@@ -170,10 +170,10 @@ class MulticastUser extends Thread {
                 }
                 return str;
             } catch (SocketTimeoutException e) {
-                System.out.println("Timed out after 10 seconds.");
+                //System.out.println("Timed out after 10 seconds.");
                 timeout_counter++;
                 if (timeout_counter == 4) {                   // Server down - Shutdown terminal
-                    System.out.println("Conexao perdida!");
+                    //System.out.println("Conexao perdida!");
                     return null;
                 }
             }
@@ -262,8 +262,36 @@ class MulticastUser extends Thread {
                         loggedin= true;
                         System.out.println("Insira unsername:");            // Include try..catch
                         username = keyboardScanner.nextLine();
+                        if(username.equals("<<")){
+                            protocol_message = "host|" + id + ";type|lock";
+                            String validation_answer = requestAction(socket, group, protocol_message);
+                            if( validation_answer == null){
+                                // timeout
+                                connected = false;
+                                erro = 1;
+                                break;
+
+                            }
+                            unlocked = false;
+                            erro = 1;
+                            break;
+                        }
                         System.out.println("Insira password");
                         password = keyboardScanner.nextLine();
+                        if(password.equals("<<")){
+                            protocol_message = "host|" + id + ";type|lock";
+                            String validation_answer = requestAction(socket, group, protocol_message);
+                            if( validation_answer == null){
+                                // timeout
+                                connected = false;
+                                erro = 1;
+                                break;
+
+                            }
+                            unlocked = false;
+                            erro = 1;
+                            break;
+                        }
                     }
                     protocol_message = "host|" + id + ";type|login;username|" + username + ";password|" + password;
                     //System.out.println("MESSAGE TO HOST : " + protocol_message);
@@ -351,14 +379,21 @@ class MulticastUser extends Thread {
                             System.out.println(i + " - " + lista.getProperty(Integer.toString(i)));
                         }
                         keyboard = keyboardScanner.nextLine();
-                        if(lista.getProperty(keyboard) != null){
+                        if(keyboard.equals("<<")){
+                            protocol_message = "host|" + id + ";type|lock";
+                            erro = 2;
+                            break;
+                        }
+                        else if(lista.getProperty(keyboard) != null){
                             break;
                         }else{
                             System.out.println("Opcao invalida.");
                         }
                     }
-                    electionVote = lista.getProperty(keyboard);
-                    protocol_message = "host|" + id + ";type|lists;vote|" + electionVote;
+                    if(erro!=2) {
+                        electionVote = lista.getProperty(keyboard);
+                        protocol_message = "host|" + id + ";type|lists;vote|" + electionVote;
+                    }
                     while(true) {
                         String validation_answer = requestAction(socket, group, protocol_message);
                         if( validation_answer == null){
@@ -371,16 +406,26 @@ class MulticastUser extends Thread {
                         if(lista == null){
                             continue;
                         }
-                        if(lista.getProperty("type").equals("lists")){
-                            election_chosen = true;
-                            break;
+                        if(erro!=2) {
+                            if (lista.getProperty("type").equals("lists")) {
+                                election_chosen = true;
+                                break;
+                            }
+                            else if(lista.getProperty("type").equals("erro")){
+                                System.out.println(lista.getProperty("msg"));
+                                // BACK TO PREVIOUS STATE
+                                erro = 1;
+                                break;
+                            }
                         }
-                        else if(lista.getProperty("type").equals("erro")){
-                            System.out.println(lista.getProperty("msg"));
-                            // BACK TO PREVIOUS STATE
-                            erro = 1;
-                            break;
+                        else{
+                            if (lista.getProperty("type").equals("lock")) {
+                                unlocked = false;
+                                erro = 1;
+                                break;
+                            }
                         }
+
                     }
                 }
                 // Enters choosing_election state
@@ -402,15 +447,21 @@ class MulticastUser extends Thread {
                             System.out.println(i + " - " + lista.getProperty(Integer.toString(i)));
                         }
                         keyboard = keyboardScanner.nextLine();
-                        if(lista.getProperty(keyboard) != null){
+                        if(keyboard.equals("<<")){
+                            protocol_message = "host|" + id + ";type|lock";
+                            erro = 2;
+                            break;
+                        }
+                        else if(lista.getProperty(keyboard) != null){
                             break;
                         }else{
                             System.out.println("Opcao invalida.");
                         }
                     }
-                    vote = lista.getProperty(keyboard);
-                    protocol_message = "host|" + id + ";type|vote;vote|" + vote + ";election|" + electionVote+ ";username|"+ username;
-
+                    if(erro!=2) {
+                        vote = lista.getProperty(keyboard);
+                        protocol_message = "host|" + id + ";type|vote;vote|" + vote + ";election|" + electionVote + ";username|" + username;
+                    }
                     // Enters voting state
                     while(true){
                         String validation_answer = requestAction(socket, group, protocol_message);
@@ -425,16 +476,24 @@ class MulticastUser extends Thread {
                         if(lista == null){
                             continue;
                         }
-                        if(lista.getProperty("type").equals("accepted")){
-                            System.out.println("Voto efetuado com sucesso!");
-                            lists_listed = true;
-                            break;
+                        if(erro!=2) {
+                            if (lista.getProperty("type").equals("accepted")) {
+                                System.out.println("Voto efetuado com sucesso!");
+                                lists_listed = true;
+                                break;
+                            } else if (lista.getProperty("type").equals("erro")) {
+                                System.out.println(lista.getProperty("msg"));
+                                // BACK TO PREVIOUS STATE
+                                erro = 1;
+                                break;
+                            }
                         }
-                        else if(lista.getProperty("type").equals("erro")){
-                            System.out.println(lista.getProperty("msg"));
-                            // BACK TO PREVIOUS STATE
-                            erro = 1;
-                            break;
+                        else{
+                            if (lista.getProperty("type").equals("lock")) {
+                                unlocked = false;
+                                erro =1;
+                                break;
+                            }
                         }
                     }
                 }

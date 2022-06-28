@@ -6,7 +6,6 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.*;
-import java.net.*;
 import java.util.ArrayList;
 import java.io.*;
 import java.util.Calendar;
@@ -84,6 +83,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
     public void subscribe(RmiClient cliente) throws RemoteException
     {
         synchronized (clientes) {
+
             clientes.add(cliente);
         }
 
@@ -111,6 +111,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
 
         System.out.println("\nMesa "+ mesa_id + " ligada\n");
         notificacoes.Put("\nMesa "+ mesa_id + " ligada\n");
+        updateAll("type|mesas;"+listarMesas());
+
         synchronized (pessoas) {
             synchronized (eleicoes){
                 synchronized (mesas){
@@ -171,6 +173,16 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         synchronized (pessoas) {
             for (int i = 0; i < pessoas.size(); i++) {
                 if (pessoas.get(i).GetUsername().equals(username)) return pessoas.get(i);
+            }
+            return null;
+        }
+    }
+
+    public Pessoa findPessoaById(String id) // procura uma pessoa pelo seu username
+    {
+        synchronized (pessoas) {
+            for (int i = 0; i < pessoas.size(); i++) {
+                if (pessoas.get(i).GetId().equals(id)) return pessoas.get(i);
             }
             return null;
         }
@@ -344,6 +356,29 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         }
     }
 
+    public Boolean EleicaoTerminada(String eleicao)throws RemoteException, NotFoundException.EleicaoNF{
+        Eleicao e = findEleicao(eleicao);
+        if (e == null) { // não encontrou a eleição
+            throw new NotFoundException.EleicaoNF();
+        }
+        synchronized (e) {
+            if(e.GetFim().after(Calendar.getInstance())) return true;
+        }
+        return false;
+    }
+
+    public String Resultado(String eleicao)throws RemoteException, NotFoundException.EleicaoNF{
+        Eleicao e = findEleicao(eleicao);
+
+        if (e == null) { // não encontrou a eleição
+            throw new NotFoundException.EleicaoNF();
+        }
+        synchronized (e) {
+            if(e.GetFim().before(Calendar.getInstance())) return e.GetResultado();
+        }
+        return null;
+    }
+
     public String consultarPessoa(String username) throws NotFoundException.PessoaNF
     {
 
@@ -459,8 +494,16 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
             String str = "";
             int count = 1;
             for (int i = 0; i < mesas.size(); i++) {
-                str += ";" + count + "|" + mesas.get(i).GetId();
+                str += ";" + count + "|" + "mesa "+ mesas.get(i).GetId();
                 count++;
+                try{
+                    //mesas.get(i).rm.test();
+                    str += mesas.get(i).rm.ListarTerminals();
+                }catch (Exception e){
+                    mesas.get(i).rm = null;
+                    str += " (desconectada)";
+                    continue;
+                }
             }
             str = "size|" + count + str;
             return str;
@@ -484,6 +527,35 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
             }
             str = "size|" + count + str;
             return str;
+        }
+    }
+
+    public String listarMesasDisponiveis(String eleicao) throws NotFoundException.EleicaoNF
+    {
+        Eleicao e = findEleicao(eleicao);
+        if(e==null){// nao encontrou a elicao
+            throw new NotFoundException.EleicaoNF();
+        }
+
+        synchronized (mesas){
+            synchronized (e) {
+                String str = "";
+                int count = 1;
+                for (int i = 0; i < mesas.size(); i++) {
+                    try {
+                        mesas.get(i).rm.test();
+                    } catch (Exception ex) {
+                        mesas.get(i).rm = null;
+                        continue;
+                    }
+                    if (e.FindMesa(mesas.get(i).GetId())==null) {
+                        str += ";" + count + "|" + mesas.get(i).GetId();
+                        count++;
+                    }
+                }
+                str = "size|" + count + str;
+                return str;
+            }
         }
     }
 
@@ -590,6 +662,17 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         }
     }
 
+    public String login(String id) throws NotFoundException.PessoaNF
+    {
+        Pessoa p = findPessoaById(id);
+        if (p == null) { // não encontrou a pessoa
+            return null;
+        }
+        synchronized (p) {
+            return p.GetUsername() + "|" + p.GetPassword();
+        }
+    }
+
     public String facebookLogin()
     {
         synchronized (pessoas){
@@ -647,6 +730,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
 
     public void addMesa(String eleicao, String mesa_id) throws NotFoundException.MesaNF, NotFoundException.EleicaoNF, DataConflictException // adicionar uma mesa a uma eleição
     {
+        System.out.println(eleicao);
         synchronized (eleicoes) {
             synchronized (mesas) {
                 Mesa m = findMesa(mesa_id);
@@ -654,10 +738,10 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                     throw new NotFoundException.MesaNF();
                 }
                 Eleicao e = findEleicao(eleicao);
+                if (e == null) { // não encontrou a eleicao
+                    throw new NotFoundException.EleicaoNF();
+                }
                 synchronized (e) {
-                    if (e == null) { // não encontrou a eleicao
-                        throw new NotFoundException.EleicaoNF();
-                    }
                     if (e.FindMesa(mesa_id) != null) { // a mesa já foi adicionada
                         throw new DataConflictException();
                     }
@@ -831,8 +915,8 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         System.out.println("Pessoa removida");
     }
 
-    public void addVoto(String numero_CC, String eleicao, String lista, String mesa_id) throws NotFoundException.PessoaNF, NotFoundException.EleicaoNF, NotFoundException.MesaNF, NotFoundException.ListaNF, DataConflictException, TimeBoundsException.EleicaoAlreadyTerminated, DataConflictException.InvalidType {
-        Pessoa p = findPessoaByUsername(numero_CC);
+    public void addVoto(String username, String eleicao, String lista, String mesa_id) throws NotFoundException.PessoaNF, NotFoundException.EleicaoNF, NotFoundException.MesaNF, NotFoundException.ListaNF, DataConflictException, TimeBoundsException.EleicaoAlreadyTerminated, DataConflictException.InvalidType {
+        Pessoa p = findPessoaByUsername(username);
         if(p==null){ // não encountrou a pessoa
             throw new NotFoundException.PessoaNF();
         }
@@ -840,15 +924,18 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         if(e==null){ // não encontrou a eleicao
             throw new NotFoundException.EleicaoNF();
         }
-        Mesa m = findMesa(mesa_id);
-        if(m==null){ // não encontrou a mesa
-            throw new NotFoundException.MesaNF();
+        Mesa m = null;
+        if(mesa_id!=null) {
+            m = findMesa(mesa_id);
+            if (m == null) { // não encontrou a mesa
+                throw new NotFoundException.MesaNF();
+            }
         }
         Calendar c = Calendar.getInstance();
         Voto voto = new Voto(p, m, c); // informação do voto
         synchronized (eleicoes) {
             synchronized (e) {
-                if(e.FindPessoa(numero_CC)){
+                if(e.FindPessoa(username)){
                     throw new DataConflictException();
                 }
                 if(c.after(e.GetFim())){ // a eleção já terminou
@@ -881,7 +968,33 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         System.out.println("voto realizado");
     }
 
-    public void setAccessToken(String username, OAuth2AccessToken accessToken) throws RemoteException, NotFoundException.PessoaNF {
+    public boolean canVote(String username, String eleicao) {
+        Pessoa p = findPessoaByUsername(username);
+        if (p == null) { // não encountrou a pessoa
+            return false;
+        }
+        Eleicao e = findEleicao(eleicao);
+        if (e == null) { // não encontrou a eleicao
+            return false;
+        }
+        Calendar c = Calendar.getInstance();
+        synchronized (eleicoes) {
+            synchronized (e) {
+                if (e.FindPessoa(username)) {
+                    return false;
+                }
+                if (c.after(e.GetFim())) { // a eleção já terminou
+                    return false;
+                }
+                if (!e.GetTipo().equals(p.GetTipo())) { // nao pode votar neste tipo de eleicoes
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+
+    public void setAccessToken(String username, OAuth2AccessToken accessToken, String id) throws RemoteException, NotFoundException.PessoaNF {
         Pessoa p = findPessoaByUsername(username);
         if(p==null){
             throw new NotFoundException.PessoaNF();
@@ -889,6 +1002,7 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
 
         synchronized (pessoas){
             synchronized (p){
+                p.SetId(id);
                 p.SetAccessToken(accessToken);
             }
         }
@@ -935,15 +1049,13 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
     }
 
     public String ListarUsers() throws RemoteException{
-        synchronized (clientes){
         String str = "";
-        int count = 1;
+        synchronized (clientes){
             for(int i=0; i<clientes.size(); i++){
                 try {
                     String s = clientes.get(i).getUsername();
                     if(s!=null) {
-                        str += ";" + count + "|" + s;
-                        count++;
+                        str += ";" + s;
                     }
                 }catch (RemoteException e){
                     clientes.remove(clientes.get(i));
@@ -951,9 +1063,16 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
                     System.out.println("cliente removido");
                 }
             }
-        str = "size|" + count + str;
-        return str;
         }
+        synchronized (mesas){
+            for(int i=0; i<mesas.size(); i++){
+                try {
+                    str += mesas.get(i).rm.listarUsers();
+                }catch (Exception e){
+                }
+            }
+        }
+        return str;
     }
 
     public void SaveDados() // salvar os dados em ficheiro
@@ -979,12 +1098,18 @@ public class RmiServerImpl extends UnicastRemoteObject implements RmiServer, Ser
         //-----------------------------------------
 
         //------ descartar mesas perdidas ------
+        erro = false;
         for(int i = 0; i<mesas.size(); i++){
             try{
                 mesas.get(i).rm.test();
             }catch (Exception e){
                 mesas.get(i).rm = null;
+                erro = true;
             }
+        }
+        try {
+            if(erro) updateAll("type|mesas;"+listarMesas());
+        } catch (Exception e) {
         }
         //-----------------------------------------
 
